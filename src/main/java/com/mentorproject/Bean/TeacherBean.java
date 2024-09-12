@@ -4,20 +4,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 
-@ConfigurationProperties(prefix = "student")
+@ConfigurationProperties(prefix = "teacher")
 @Component
-public class StudentBean {
+public class TeacherBean {
 
-    private String studentId;
+    private String teacherId;
 
-    private String studentName;
+    private String teacherName;
 
     private Integer gender;
 
-    private Double gpa;
+    private String teacherDescription;
 
     private String password;
-
-    private String studentDescription;
 
 }

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+    <!--引入 element-ui 的样式，-->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 必须先引入vue，  后使用element-ui -->
+    <!--    <script src="../js/vue.js"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+    <!-- 引入element 的组件库-->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/http-vue-loader"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router@3.0.0/dist/vue-router.js"></script>
+    <style>
+        .el-header {
+            background-color: #B3C0D1;
+            color: #333;
+            line-height: 60px;
+        }
+
+        .image {
+            width: 100%;
+            display: block;
+        }
+
+         .tip {
+             color: white;
+             text-align: center;
+             border-radius: 10px;
+             font-family: sans-serif;
+             padding: 10px;
+             width:auto;
+             display:inline-block !important;
+             display:inline;
+         }
+        .right {
+            background-color: deepskyblue;
+        }
+        .left {
+            background-color: forestgreen;
+        }
+
+    </style>
+</head>
+
+<body>
+<div id="pageApp">
+    <el-container>
+        <el-header style="text-align: right; font-size: 12px">
+
+            <el-dropdown>
+                <i class="el-icon-setting" style="margin-right: 30px;margin-bottom: 15px;margin-top: 15px"></i>
+                <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item @click.native="logOut()">登出</el-dropdown-item>
+<!--                    <el-dropdown-item @click.native="changeStatus()">切换阶段</el-dropdown-item>-->
+                    <el-dropdown-item @click.native="exitStudent()">更改用户</el-dropdown-item>
+                </el-dropdown-menu>
+            </el-dropdown>
+            <el-avatar icon="el-icon-user-solid"></el-avatar>
+        </el-header>
+    </el-container>
+
+    <el-container>
+        <el-header style="background-color: #545c64; text-align: right; font-size: 12px">
+            <el-menu
+                    :default-active="activeIndex2"
+                    class="el-menu-demo"
+                    mode="horizontal"
+                    @select="handleSelect"
+                    background-color="#545c64"
+                    text-color="#fff"
+                    active-text-color="#ffd04b">
+                <el-menu-item index="1" @click="seen1=true;seen21=false;seen22=false;seen3=false;">个人信息
+                </el-menu-item>
+                <el-submenu index="2">
+                    <template slot="title">志愿管理</template>
+                    <el-menu-item index="2-1" @click="seen1=false;seen21=true;seen22=false;seen3=false;">
+                        查看志愿
+                    </el-menu-item>
+                    <el-menu-item index="2-2" @click="seen1=false;seen21=false;seen22=true;seen3=false;"
+                                  v-if="this.presentStatus === 0">
+                        填写志愿
+                    </el-menu-item>
+                </el-submenu>
+                <el-menu-item index="3" @click="seen1=false;seen21=false;seen22=false;seen3=true;">
+                    私信中心
+                </el-menu-item>
+                <el-menu-item index="4" @click="seen1=false;seen21=false;seen22=false;seen3=false;">
+                    <el-link href="http://localhost:63342/MentorProject/view/pages/teachershow.html" target="_blank" :underline="false">
+                        导师列表
+                    </el-link>
+                </el-menu-item>
+            </el-menu>
+        </el-header>
+        <el-steps :active="this.presentStatus" finish-status="success" simple>
+            <el-step title="学生填写志愿"></el-step>
+            <el-step title="第一轮志愿选择"></el-step>
+            <el-step title="第二轮志愿选择"></el-step>
+            <el-step title="第三轮志愿选择"></el-step>
+            <el-step title="查看双选结果"></el-step>
+        </el-steps>
+        <el-main>
+            <transition name="el-fade-in">
+                <el-descriptions v-if="seen1" class="margin-top" title="个人信息" :column="3" border>
+                    <template slot="extra">
+                        <div>
+                            <el-button type="primary" size="small" @click="dialogVisible=true">修改</el-button>
+                            <el-dialog title="个人信息" :visible.sync="dialogVisible">
+                                <el-form :model="form">
+                                    <el-form-item label="姓名">
+                                        <el-input v-model="form.studentName" autocomplete="off" disabled></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="个人介绍">
+                                        <el-input v-model="form.studentDescription" autocomplete="off"
+                                                  type="textarea"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                                <div slot="footer" class="dialog-footer">
+                                    <el-button @click="dialogVisible=false;cancelForm();">取 消</el-button>
+                                    <el-button type="primary" @click="dialogVisible=false;submitForm();">确 定</el-button>
+                                </div>
+                            </el-dialog>
+                        </div>
+                    </template>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-user"></i>
+                            姓名
+                        </template>
+                        {{ StudentName }}
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-mobile-phone"></i>
+                            学号
+                        </template>
+                        {{ StudentId }}
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-location-outline"></i>
+                            绩点
+                        </template>
+                        {{ StudentGPA }}
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-tickets"></i>
+                            志愿匹配状态
+                        </template>
+                        <el-tag size="small" type="warning" v-if="StudentSelected === 0">未完成匹配</el-tag>
+                        <el-tag size="small" type="success" v-if="StudentSelected === 1">已完成匹配</el-tag>
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-office-building"></i>
+                            个人介绍
+                        </template>
+                        {{ StudentDescription }}
+                    </el-descriptions-item>
+                    <el-descriptions-item>
+                        <template slot="label">
+                            <i class="el-icon-user"></i>
+                            匹配的导师
+                        </template>
+                        {{ StudentMatchMentor }}
+                    </el-descriptions-item>
+                </el-descriptions>
+            </transition>
+
+            <transition name="el-fade-in">
+                <div v-if="seen21">
+                    <el-table
+                            :data="stuAppDataList"
+                            :fit="true"
+                            stripe>
+                        <el-table-column
+                                width="140"
+                                prop="studentId"
+                                label="学号">
+                            <template slot-scope="scope">
+                                {{ scope.row.studentId }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                width="140"
+                                prop="first_app"
+                                label="第一志愿">
+                            <template slot-scope="scope">
+                                {{ teacherNameFormatter(scope.row.first_app) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                width="140"
+                                prop="second_app"
+                                label="第二志愿">
+                            <template slot-scope="scope">
+                                {{ teacherNameFormatter(scope.row.second_app) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                width="140"
+                                prop="third_app"
+                                label="第三志愿">
+                            <template slot-scope="scope">
+                                {{ teacherNameFormatter(scope.row.third_app) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                prop="is_selected"
+                                label="是否已被选">
+                            <template slot-scope="scope" v-model="StudentSelected">
+                                {{ scope.row.is_selected === 0 ? '否' : '是' }}
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+            </transition>
+            <transition name="el-fade-in">
+                <div v-if="seen22">
+                    <el-transfer
+                            style="text-align: left; display: inline-block"
+                            v-model="selected"
+                            filterable
+                            :titles="['导师列表', '志愿列表']"
+                            :button-texts="['撤销选择', '添加选择']"
+                            :props="{
+                                key: 'key',
+                                label: 'desc'
+                            }"
+                            target-order="push"
+                            @change="check()"
+                            :data="teacherNameList">
+                        <el-button type="primary" class="transfer-footer" slot="left-footer" size="small"
+                                   @click="resetSelect()">重置
+                        </el-button>
+                        <el-button type="primary" class="transfer-footer" slot="right-footer" size="small"
+                                   @click="fillApp()">保存
+                        </el-button>
+                    </el-transfer>
+                </div>
+            </transition>
+
+            <transition name="el-fade-in">
+                <div v-if="seen3">
+                    <template>
+                        <div style="padding: 10px; margin-bottom: 50px">
+                            <el-row>
+                                <el-col :span="4">
+                                    <el-card style="width: 300px;  color: #333">
+                                        <div style="padding-bottom: 10px; border-bottom: 1px solid #ccc">在线老师<span
+                                                style="font-size: 12px">（点击聊天气泡开始聊天）</span></div>
+                                        <div style="padding: 10px 0" v-for="who in tableData" :key="who.teacherId">
+                                            <span>{{ who.teacherName }}</span>
+                                            <i class="el-icon-chat-dot-round"
+                                               style="margin-left: 10px; font-size: 16px; cursor: pointer"
+                                               @click="chatUser = who;recall()"></i>
+                                            <span style="font-size: 12px;color: limegreen; margin-left: 5px"
+                                                  v-if="who.teacherId === chatUser.teacherId">chatting...</span>
+                                        </div>
+                                    </el-card>
+                                </el-col>
+                                <el-col :span="20">
+                                    <div style="width: 800px; margin: 0 auto; background-color: white;
+                    border-radius: 5px; box-shadow: 0 0 10px #ccc">
+                                        <div style="text-align: center; line-height: 50px;">
+                                            私信（{{ chatUser.teacherName }}）
+                                        </div>
+                                        <div style="height: 350px; overflow:auto; border-top: 1px solid #ccc"
+                                             v-html="content"></div>
+                                        <div style="height: 200px">
+            <textarea v-model="text" style="height: 160px; width: 95%; padding: 20px; border: none; border-top: 1px solid #ccc;
+             border-bottom: 1px solid #ccc; outline: none" id="messagebox"></textarea>
+                                            <div style="text-align: right; padding-right: 10px">
+                                                <el-button type="primary" size="mini" @click="send()">发送</el-button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </template>
+                </div>
+            </transition>
+
+
+        </el-main>
+    </el-container>
+</div>
+
+<script type="text/javascript">
+    var pageApp = new Vue({
+        data() {
+            return {
+                text: "",
+                textr: "",
+                texts:"",
+
+                content: '',
+
+                chatUser: {
+                    teacherId: '',
+                    teacherName: '',
+                    gender: '',
+                    teacherDescription: '',
+                    password: ''
+                },
+
+                activeIndex: '1',
+                activeIndex2: '1',
+                presentStatus: JSON.parse(localStorage.getItem('PresentStatus')),
+
+                seen1: true,
+                seen21: false,
+                seen22: false,
+                seen3: false,
+
+                stuAppDataList: [],
+                stuAppData: {
+                    first_app: '',
+                    second_app: '',
+                    third_app: '',
+                    is_selected: 0
+                },
+
+                tableData: [{
+                    teacherId: '',
+                    teacherName: '',
+                    gender: '',
+                    teacherDescription: '',
+                    password: ''
+                }],
+                teacherNameList: [],
+
+                messageData: [],
+
+                StudentId: JSON.parse(localStorage.getItem('StudentID')),
+                StudentName: '',
+                StudentDescription: '',
+                StudentGPA: 0,
+                StudentMatchMentor: '',
+
+                newMessage: 0,
+                StudentSelected: '',
+                dialogVisible: false,
+                form: {
+                    studentName: '',
+                    studentDescription: ''
+                },
+                selected: [],
+                message1:'123',
+
+                isrecall: true
+            }
+        },
+        methods: {
+            recall() {
+                axios
+                    .get("http://localhost:8080/hellomentor/student/checkMessage", {
+                        params: {
+                            student_id: JSON.parse(localStorage.getItem('StudentID')),
+                            teacher_id: this.chatUser.teacherId
+                        }
+                    })
+                    .then(resp => {
+                        this.messageData = resp.data;
+                        this.newMessage = this.messageData.length;
+                        this.isrecall=false;
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
+                this.content = '';
+            },
+
+
+            send() {
+                if (!this.chatUser.teacherId) {
+                    this.$message({type: 'warning', message: "请选择聊天对象"})
+                    return;
+                }
+                if (!this.text) {
+                    this.$message({type: 'warning', message: "请输入内容"})
+                } else {
+                    axios
+                        .get("http://localhost:8080/hellomentor/student/sendMessage", {
+                            params: {
+                                student_id: JSON.parse(localStorage.getItem('StudentID')),
+                                teacher_id: this.chatUser.teacherId,
+                                messageinfo: this.text
+                            }
+                        })
+                        .then(resp => {
+                            this.$message.success('发送成功！');
+                            console.log(resp.data);
+                            this.text='';
+                        });
+                }
+            },
+
+            handleSelect(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            submitForm() {
+                axios
+                    .get("http://localhost:8080/hellomentor/student/updateInfo", {
+                        params: {
+                            student_id: JSON.parse(localStorage.getItem('StudentID')),
+                            student_description: this.form.studentDescription
+                        }
+                    })
+                    .then(resp => {
+                        this.$message.success('已保存修改！');
+                        console.log(resp.data);
+                        window.location.reload();
+                    });
+            },
+            cancelForm() {
+                this.$message({
+                    message: '取消提交',
+                    type: 'warning'
+                })
+            },
+            handleChange(value, direction, movedKeys) {
+                console.log(value, direction, movedKeys);
+            },
+            handleOpen(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            handleClose(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            resetSelect() {
+                this.$confirm('确定要重置选择吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.selected = [];
+                    this.$message({
+                        type: 'success',
+                        message: '已重置选择！'
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '取消重置'
+                    })
+                })
+            },
+            fillApp() {
+                if (this.selected.length > 3) {
+                    this.$message.error("仅限选择三位导师作为志愿！")
+                } else {
+                    this.$confirm('请确认填写情况,是否提交?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.appSubmit();
+                    }).catch(() => {
+                        this.$message({
+                            type: 'info',
+                            message: '取消提交'
+                        });
+                    });
+                }
+            },
+            appSubmit() {
+                for (let i = this.selected.length; i < 3; i++) {
+                    this.selected[i] = '';
+                }
+                axios
+                    .get("http://localhost:8080/hellomentor/student/fillapp", {
+                        params: {
+                            student_id: JSON.parse(localStorage.getItem('StudentID')),
+                            first_app: this.selected[0],
+                            second_app: this.selected[1],
+                            third_app: this.selected[2],
+                            is_selected: 0
+                        }
+                    })
+                    .then(resp => {
+                        this.$message.success('已成功提交！');
+                        this.selected = [];
+                    })
+            },
+            check() {
+                if (this.selected.length > 3) {
+                    this.$message.error("最多选择三个志愿!")
+                    this.selected.pop();
+                } else {
+                    this.$message.success("选择成功！")
+                }
+            },
+            teacherNameFormatter(idToFormat) {
+                for (let i = 0; i < this.teacherNameList.length; i++) {
+                    if (idToFormat === this.teacherNameList[i].key) {
+                        return this.teacherNameList[i].desc;
+                    }
+                }
+                return '暂未选择';
+            },
+            exitStudent() {
+                localStorage.setItem('StudentID', null);
+                window.location.href = "http://localhost:63342/MentorProject/view/pages/index.html";
+            },
+            changeStatus() {
+                if (this.presentStatus === 5) {
+                    localStorage.setItem('PresentStatus', 0);
+                } else {
+                    localStorage.setItem('PresentStatus', this.presentStatus + 1);
+                }
+                window.location.reload();
+            },
+            logOut() {
+                localStorage.setItem('StudentID', null);
+                window.location.href = "http://localhost:63342/MentorProject/view/pages/index.html"
+            }
+        },
+        mounted() {
+            setInterval(() => {
+                // console.log('页面加载完成后-自动执行')
+                if (!this.isrecall){
+                // console.log(this.messageData)
+                for (let item of this.messageData) {
+                    if (item.receiver === this.chatUser.teacherId) {
+                        texts = item.message;
+                        html = "<div class=\"el-row\" style=\"padding: 5px 0\">\n" +
+                            "  <div class=\"el-col el-col-22\" style=\"text-align: right; padding-right: 10px\">\n" +
+                            "    <div class=\"tip left\">" + texts + "</div>\n" +
+                            "  </div>\n" +
+                            "  <div class=\"el-col el-col-2\">\n" +
+                            "  <span class=\"el-avatar el-avatar--circle\" style=\"height: 40px; width: 40px; line-height: 40px;\">\n" +
+                            "    <img src=\"https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png\" style=\"object-fit: cover;\">\n" +
+                            "  </span>\n" +
+                            "  </div>\n" +
+                            "</div>";<!--当前用户信息-->
+                    } else {
+
+                        textr = item.message;
+                        html = "<div class=\"el-row\" style=\"padding: 5px 0\">\n" +
+                            "  <div class=\"el-col el-col-2\" style=\"text-align: right\">\n" +
+                            "  <span class=\"el-avatar el-avatar--circle\" style=\"height: 40px; width: 40px; line-height: 40px;\">\n" +
+                            "    <img src=\"https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png\" style=\"object-fit: cover;\">\n" +
+                            "  </span>\n" +
+                            "  </div>\n" +
+                            "  <div class=\"el-col el-col-22\" style=\"text-align: left; padding-left: 10px\">\n" +
+                            "    <div class=\"tip right\">" + textr + "</div>\n" +
+                            "  </div>\n" +
+                            "</div>";
+                    }
+
+                    this.content += html;
+                    this.isrecall=true;
+                }}
+            }, 1000)
+
+            axios
+                .get("http://localhost:8080/hellomentor/teacher/getall")
+                .then(resp => {
+                    this.tableData = resp.data;
+
+                    for (let i = 0; i < this.tableData.length; i++) {
+                        let id = resp.data[i].teacherId;
+                        let name = resp.data[i].teacherName;
+                        let socket = {
+                            key: id,
+                            desc: name,
+                            disabled: false
+                        };
+                        this.teacherNameList.push(socket);
+                    }
+
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+
+            axios
+                .get("http://localhost:8080/hellomentor/student/checkResult", {
+                    params: {
+                        student_id: JSON.parse(localStorage.getItem('StudentID'))
+                    }
+                })
+                .then(resp => {
+                    this.StudentMatchMentor = resp.data[0].teacher_name;
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+
+            axios
+                .get("http://localhost:8080/hellomentor/student/getapp", {
+                    params: {
+                        student_id: JSON.parse(localStorage.getItem('StudentID'))//通过登录校验控制
+                    }
+                })
+                .then(resp => {
+                    this.stuAppData = resp.data;
+                    this.stuAppDataList.push(this.stuAppData);
+                    this.StudentSelected = this.stuAppData.is_selected;
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+
+            axios
+                .get("http://localhost:8080/hellomentor/student/getinfo", {
+                    params: {
+                        student_id: JSON.parse(localStorage.getItem('StudentID'))//通过登录校验控制
+                    }
+                })
+                .then(resp => {
+                    this.StudentId = resp.data.studentId;
+                    this.StudentName = resp.data.studentName;
+                    this.StudentGPA = resp.data.gpa;
+                    this.StudentDescription = resp.data.studentDescription;
+
+                    this.form.studentName = resp.data.studentName;
+                    this.form.studentDescription = resp.data.studentDescription;
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+        }
+    })
+    pageApp.$mount('#pageApp')
+
+</script>
+</body>
+</html>

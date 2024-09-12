@@ -1,5 +1,5 @@
 # 数据库大型实验
- - 考虑Springboot,Mybatis,JSP实现与后端功能交互
+ - Vue+Element UI+Springboot+axios
 # 版本控制（参考）
  - JDK:11
  - Maven:3.8.4
@@ -28,3 +28,4 @@
    4. 本地仓库：E:/.../apache-maven-3.8.4/maven-repo
   - 找到HelloApplication.java 运行其中的主函数
   - 浏览器中访问localhost:8080/hellomentor/hello可以看见Hello World提示
+test
